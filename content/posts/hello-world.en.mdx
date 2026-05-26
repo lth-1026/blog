@@ -1,0 +1,38 @@
+---
+title: "Hello, this is my first post"
+description: "Starting a new blog — the stack I chose and what I thought about along the way"
+date: "2026-05-26"
+tags: ["nextjs", "blog", "meta"]
+---
+
+I started a new blog. The plan is to refine the system as I write.
+
+## Why I rebuilt it
+
+I used to write on Notion. It was fast, but I hit some limits:
+
+- Code highlighting and custom components were limited
+- The way content surfaced in search was constrained
+- I couldn't tune the design myself
+
+<Callout type="info">
+  This post is written in both Korean and English. Use the language toggle in the footer to switch.
+</Callout>
+
+## The stack
+
+```ts
+const stack = {
+  framework: "Next.js 16 (App Router)",
+  language: "TypeScript 5",
+  styling: "Tailwind v4 + shadcn/ui",
+  content: "MDX + Shiki",
+  hosting: "Vercel",
+};
+```
+
+Thanks to RSC, post bodies are statically pre-rendered. Crawlers get HTML directly without running JS.
+
+## What's next
+
+Small notes from things I learn, problems I run into at work, and occasional sketches of things I want to build.
