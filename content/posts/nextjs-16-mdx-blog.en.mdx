@@ -1,0 +1,47 @@
+---
+title: "Building an MDX blog on Next.js 16"
+description: "Setup notes from scratch — App Router + RSC with statically pre-rendered MDX"
+date: "2026-05-26"
+tags: ["nextjs", "mdx", "tutorial"]
+series: "Building this blog"
+---
+
+Notes I took while rebuilding this blog. With App Router + RSC, rendering MDX inside an RSC means even syntax highlighting happens at build time, so the JS shipped to the user is almost nothing.
+
+## Content folder
+
+```
+content/posts/
+├── hello-world.ko.mdx
+├── hello-world.en.mdx
+└── nextjs-16-mdx-blog.ko.mdx
+```
+
+Keeping `.ko.mdx` / `.en.mdx` for the same slug maps naturally to `/[locale]/blog/[slug]`. hreflang is auto-emitted only when both versions exist.
+
+## Rendering MDX
+
+```tsx
+import { MDXRemote } from "next-mdx-remote/rsc";
+
+export function PostBody({ content }: { content: string }) {
+  return <MDXRemote source={content} options={mdxOptions} />;
+}
+```
+
+`next-mdx-remote/rsc` compiles MDX directly inside the RSC. With `rehype-pretty-code` + Shiki, code blocks are tokenized at build time, so the client JS for syntax highlighting is essentially zero.
+
+<Callout type="tip">
+  Shiki's dual-theme option emits both light and dark tokens at once, so a CSS class swap is enough to switch themes.
+</Callout>
+
+## SEO setup
+
+- `generateMetadata` — title/description/canonical/hreflang
+- `BlogPosting` JSON-LD per post
+- `app/sitemap.ts` — auto sitemap of every post × every locale
+- `@vercel/og` — dynamic 1200×630 OG image per post
+
+## Wrap-up
+
+The biggest shift is that a single `git push` statically builds and ships posts. No CMS — write in the IDE, freely mix React components inline.

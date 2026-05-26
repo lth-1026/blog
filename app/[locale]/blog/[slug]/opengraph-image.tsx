@@ -10,9 +10,9 @@ export const contentType = "image/png";
 export default async function OG({
   params,
 }: {
-  params: { locale: Locale; slug: string };
+  params: Promise<{ locale: Locale; slug: string }>;
 }) {
-  const { locale, slug } = params;
+  const { locale, slug } = await params;
   const post = await getPost(locale, slug);
 
   return new ImageResponse(

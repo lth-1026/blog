@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/getDictionary";
 import { siteConfig } from "@/lib/site-config";
+import { CommandPalette } from "@/components/search/command-palette";
 
 export function Header({
   locale,
@@ -19,13 +20,20 @@ export function Header({
         >
           {siteConfig.name[locale]}
         </Link>
-        <nav className="flex items-center gap-5 text-sm text-muted-foreground">
+        <nav className="flex items-center gap-4 text-sm text-muted-foreground">
           <Link
             href={`/${locale}/blog`}
             className="hover:text-foreground transition-colors"
           >
             {dict.nav.blog}
           </Link>
+          <CommandPalette
+            locale={locale}
+            placeholder={dict.search.placeholder}
+            noResults={dict.search.noResults}
+            hint={dict.search.hint}
+            openLabel={dict.search.open}
+          />
         </nav>
       </div>
     </header>

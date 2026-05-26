@@ -6,6 +6,7 @@ import { locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { PostBody } from "@/components/blog/post-body";
+import { Comments } from "@/components/blog/giscus";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 
@@ -147,6 +148,13 @@ export default async function PostPage({
       </header>
 
       <PostBody content={post.content} />
+
+      <section className="mt-16 pt-8 border-t border-border/60">
+        <h2 className="text-sm font-semibold tracking-tight uppercase text-muted-foreground mb-6">
+          {dict.comments.title}
+        </h2>
+        <Comments locale={locale} />
+      </section>
 
       <footer className="mt-16 pt-8 border-t border-border/60">
         <Link

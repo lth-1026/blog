@@ -1,0 +1,47 @@
+---
+title: "Next.js 16에서 MDX 블로그 만들기"
+description: "App Router + RSC로 정적 사전 렌더링되는 기술 블로그를 처음부터 셋업한 기록"
+date: "2026-05-26"
+tags: ["nextjs", "mdx", "tutorial"]
+series: "블로그 만들기"
+---
+
+블로그를 새로 만들면서 정리한 셋업 노트입니다. App Router + RSC 환경에서 MDX를 RSC 안에서 렌더하면 코드 하이라이팅까지 빌드 타임에 끝나서 사용자 쪽 JS 부담이 거의 없습니다.
+
+## 콘텐츠 폴더 구조
+
+```
+content/posts/
+├── hello-world.ko.mdx
+├── hello-world.en.mdx
+└── nextjs-16-mdx-blog.ko.mdx
+```
+
+언어별로 같은 slug에 `.ko.mdx` / `.en.mdx`를 두면, URL은 `/[locale]/blog/[slug]`로 자연스럽게 매칭됩니다. hreflang은 두 버전이 모두 있을 때만 자동으로 연결되도록 했습니다.
+
+## MDX 렌더링
+
+```tsx
+import { MDXRemote } from "next-mdx-remote/rsc";
+
+export function PostBody({ content }: { content: string }) {
+  return <MDXRemote source={content} options={mdxOptions} />;
+}
+```
+
+`next-mdx-remote/rsc`를 쓰면 RSC 안에서 직접 컴파일/렌더가 됩니다. `rehype-pretty-code` + Shiki로 코드 블록을 빌드 타임에 토큰화해서 클라이언트로 보내는 JS가 0에 수렴합니다.
+
+<Callout type="tip">
+  Shiki의 dual-theme 옵션을 켜면 light/dark 토큰을 동시에 emit해서, CSS만 바꾸면 즉시 테마가 전환됩니다.
+</Callout>
+
+## SEO 셋업
+
+- `generateMetadata` — title/description/canonical/hreflang
+- `BlogPosting` JSON-LD — 글 단위 구조화 데이터
+- `app/sitemap.ts` — 모든 글 × 모든 locale 자동 sitemap
+- `@vercel/og` — 글마다 동적 OG 이미지 (1200×630)
+
+## 정리
+
+`git push` 한 번으로 글이 정적 빌드되어 배포된다는 점이 가장 큰 변화입니다. CMS 없이 IDE에서 그대로 글을 쓰고, 컴포넌트도 자유롭게 섞을 수 있습니다.
