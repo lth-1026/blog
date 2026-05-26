@@ -1,0 +1,52 @@
+{
+  "site": {
+    "title": "Taeho Lee",
+    "role": "Frontend Engineer",
+    "description": "A technical blog by frontend engineer Taeho Lee."
+  },
+  "nav": {
+    "home": "Home",
+    "blog": "Blog",
+    "about": "About"
+  },
+  "blog": {
+    "title": "Blog",
+    "description": "Notes from things I've learned while building software.",
+    "readMore": "Read more",
+    "minRead": "min read",
+    "publishedOn": "Published",
+    "updatedOn": "Updated",
+    "tags": "Tags",
+    "series": "Series",
+    "tableOfContents": "Table of contents",
+    "allPosts": "All posts",
+    "noResults": "No results.",
+    "thisPostInOtherLanguage": "This post is also available in another language.",
+    "onlyAvailableInKorean": "This post is only available in Korean.",
+    "onlyAvailableInEnglish": "This post is only available in English."
+  },
+  "search": {
+    "placeholder": "Type to search...",
+    "open": "Search",
+    "noResults": "No results found.",
+    "hint": "Search posts ⌘K"
+  },
+  "footer": {
+    "github": "GitHub",
+    "email": "Email",
+    "rss": "RSS",
+    "rights": "© {year} Taeho Lee"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "locale": {
+    "toggle": "Toggle language"
+  },
+  "comments": {
+    "title": "Comments"
+  }
+}
