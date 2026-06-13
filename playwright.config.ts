@@ -11,7 +11,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? "github" : "list",
+  // In CI: inline annotations (github) + an HTML report uploaded as an artifact
+  // for debugging failures. Locally: a simple list.
+  reporter: process.env.CI
+    ? [["github"], ["html", { open: "never" }]]
+    : "list",
   use: {
     baseURL: BASE_URL,
     trace: "on-first-retry",
