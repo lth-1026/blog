@@ -18,10 +18,10 @@ export const siteConfig = {
   },
   ogImage: "/og-default.png",
   giscus: {
-    repo: "" as `${string}/${string}` | "",
-    repoId: "",
+    repo: "lth-1026/blog" as `${string}/${string}` | "",
+    repoId: "R_kgDOS5bOug",
     category: "Announcements",
-    categoryId: "",
+    categoryId: "DIC_kwDOS5bOus4C_EZI",
   },
 } as const;
 
