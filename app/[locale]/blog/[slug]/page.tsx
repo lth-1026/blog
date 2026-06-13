@@ -4,16 +4,18 @@ import { notFound } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { locales, defaultLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
-import { getAllSlugs, getPost } from "@/lib/posts";
+import { getAllSlugParams, getPostWithFallback } from "@/lib/posts";
 import { PostBody } from "@/components/blog/post-body";
 import { OutdatedBanner } from "@/components/blog/outdated-banner";
+import { FallbackBanner } from "@/components/blog/fallback-banner";
 import { Comments } from "@/components/blog/comments-lazy";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 
 export async function generateStaticParams() {
-  const all = await getAllSlugs();
-  return all.map(({ locale, slug }) => ({ locale, slug }));
+  // Includes cross-locale fallback URLs: every slug × every site locale, so a
+  // ko-only post is still prerendered (and served via fallback) at /en/...
+  return getAllSlugParams();
 }
 
 export async function generateMetadata({
@@ -22,10 +24,15 @@ export async function generateMetadata({
   params: Promise<{ locale: Locale; slug: string }>;
 }): Promise<Metadata> {
   const { locale, slug } = await params;
-  const post = await getPost(locale, slug);
-  if (!post) return { title: "Not found" };
+  const resolved = await getPostWithFallback(locale, slug);
+  if (!resolved) return { title: "Not found" };
+  const { post, actualLocale } = resolved;
 
-  const url = `/${locale}/blog/${slug}`;
+  // SEO: canonical always points to the post's ACTUAL language URL. On a
+  // fallback page (requested locale lacks a translation) this de-duplicates
+  // the content against its real-language original. hreflang alternates list
+  // only the locales the post genuinely exists in — never a bogus alternate.
+  const canonical = `/${actualLocale}/blog/${slug}`;
   const languages: Record<string, string> = {};
   for (const l of locales) {
     if (post.availableLocales.includes(l)) {
@@ -36,23 +43,24 @@ export async function generateMetadata({
   // Prefer the default-locale version; fall back to whatever this post is.
   languages["x-default"] = post.availableLocales.includes(defaultLocale)
     ? `/${defaultLocale}/blog/${slug}`
-    : `/${locale}/blog/${slug}`;
+    : `/${actualLocale}/blog/${slug}`;
 
   return {
     title: post.title,
     description: post.description,
-    alternates: { canonical: url, languages },
+    alternates: { canonical, languages },
     openGraph: {
       type: "article",
       title: post.title,
       description: post.description,
-      url,
+      url: canonical,
       siteName: siteConfig.name[locale],
-      locale,
+      // Reflect the content's actual language, not the requested UI locale.
+      locale: actualLocale,
       publishedTime: post.date,
       modifiedTime: post.lastModified,
       tags: post.tags,
-      authors: [siteConfig.author.name[locale]],
+      authors: [siteConfig.author.name[actualLocale]],
     },
     twitter: {
       card: "summary_large_image",
@@ -68,8 +76,9 @@ export default async function PostPage({
   params: Promise<{ locale: Locale; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const post = await getPost(locale, slug);
-  if (!post) notFound();
+  const resolved = await getPostWithFallback(locale, slug);
+  if (!resolved) notFound();
+  const { post, isFallback, actualLocale } = resolved;
 
   const dict = await getDictionary(locale);
 
@@ -82,15 +91,19 @@ export default async function PostPage({
     dateModified: post.lastModified,
     author: {
       "@type": "Person",
-      name: siteConfig.author.name[locale],
+      name: siteConfig.author.name[actualLocale],
       url: siteConfig.url,
     },
-    inLanguage: locale,
-    mainEntityOfPage: `${siteConfig.url}/${locale}/blog/${slug}`,
+    // Content's real language + canonical URL, even on a fallback page.
+    inLanguage: actualLocale,
+    mainEntityOfPage: `${siteConfig.url}/${actualLocale}/blog/${slug}`,
   };
 
+  // Cross-locale link only makes sense when a genuine translation exists in a
+  // different locale than the one we're rendering. On a fallback page the post
+  // exists in a single locale, so there's nothing to link to.
   const otherLocale = locales.find(
-    (l) => l !== locale && post.availableLocales.includes(l),
+    (l) => l !== actualLocale && post.availableLocales.includes(l),
   );
 
   return (
@@ -152,6 +165,14 @@ export default async function PostPage({
           </p>
         )}
       </header>
+
+      {isFallback && (
+        <FallbackBanner
+          uiLocale={locale}
+          actualLocale={actualLocale}
+          dict={dict}
+        />
+      )}
 
       <OutdatedBanner
         date={post.date}

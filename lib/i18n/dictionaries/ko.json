@@ -25,7 +25,8 @@
     "onlyAvailableInKorean": "이 글은 한국어로만 작성되어 있습니다.",
     "onlyAvailableInEnglish": "이 글은 영어로만 작성되어 있습니다.",
     "outdatedTitle": "오래된 글입니다",
-    "outdatedNotice": "이 글은 {date}에 작성되었습니다. 내용이 현재와 맞지 않을 수 있으니 참고해 주세요."
+    "outdatedNotice": "이 글은 {date}에 작성되었습니다. 내용이 현재와 맞지 않을 수 있으니 참고해 주세요.",
+    "fallbackNotice": "이 글은 {language}로만 제공됩니다."
   },
   "search": {
     "placeholder": "검색어를 입력하세요...",

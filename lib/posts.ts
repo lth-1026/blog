@@ -5,7 +5,7 @@ import readingTime from "reading-time";
 import { z } from "zod";
 import { getGitLastModified } from "./git-dates";
 import type { Locale } from "./i18n/config";
-import { locales } from "./i18n/config";
+import { locales, defaultLocale } from "./i18n/config";
 
 const POSTS_DIR = path.join(process.cwd(), "content", "posts");
 
@@ -146,6 +146,74 @@ export async function getPost(
 ): Promise<Post | null> {
   const all = attachAvailableLocales(await loadAllRawPosts());
   return all.find((p) => p.locale === locale && p.slug === slug) ?? null;
+}
+
+export interface PostWithFallback {
+  /** The resolved post content. When `isFallback` is true this is the
+   *  available-locale version, not the requested one. */
+  post: Post;
+  /** True when the requested locale had no translation and we fell back. */
+  isFallback: boolean;
+  /** The locale the returned `post` is actually written in. Equals the
+   *  requested locale when `isFallback` is false. */
+  actualLocale: Locale;
+}
+
+/**
+ * Resolve a post by slug with graceful cross-locale fallback.
+ *
+ * Tries the requested `locale` first. If that translation doesn't exist but
+ * the post exists in another locale, returns the available version flagged as
+ * a fallback (preferring the default locale when multiple exist — though in
+ * practice a fallback only triggers when exactly one locale is present).
+ *
+ * Returns `null` only when the slug exists in NO locale (genuine 404).
+ */
+export async function getPostWithFallback(
+  locale: Locale,
+  slug: string,
+): Promise<PostWithFallback | null> {
+  const all = attachAvailableLocales(await loadAllRawPosts());
+  const forSlug = all.filter((p) => p.slug === slug);
+  if (forSlug.length === 0) return null;
+
+  const exact = forSlug.find((p) => p.locale === locale);
+  if (exact) {
+    return { post: exact, isFallback: false, actualLocale: locale };
+  }
+
+  // No translation in the requested locale — fall back. Prefer the default
+  // locale, otherwise take whatever exists (ordered by `locales`).
+  const fallback =
+    forSlug.find((p) => p.locale === defaultLocale) ??
+    locales.map((l) => forSlug.find((p) => p.locale === l)).find(Boolean);
+  if (!fallback) return null;
+
+  return { post: fallback, isFallback: true, actualLocale: fallback.locale };
+}
+
+/**
+ * (locale, slug) pairs to statically generate, INCLUDING cross-locale fallback
+ * URLs. For every slug, emit a param for each site locale as long as the post
+ * exists in at least one locale — so `/en/blog/<ko-only-slug>` is prerendered
+ * and served by the fallback resolver instead of 404ing. Reuses the same
+ * file IO as everything else (single load).
+ */
+export async function getAllSlugParams(): Promise<
+  { slug: string; locale: Locale }[]
+> {
+  const all = await loadAllRawPosts();
+  const slugs = new Set<string>();
+  for (const p of all) {
+    if (includeDrafts || !p.draft) slugs.add(p.slug);
+  }
+  const params: { slug: string; locale: Locale }[] = [];
+  for (const slug of slugs) {
+    for (const locale of locales) {
+      params.push({ slug, locale });
+    }
+  }
+  return params;
 }
 
 export async function getAllSlugs(): Promise<
