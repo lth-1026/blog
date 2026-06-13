@@ -45,3 +45,8 @@ next-env.d.ts
 
 # mermaid build-time render cache (hash → light/dark SVG pair)
 /.mermaid-cache/
+
+# playwright e2e
+/test-results/
+/playwright-report/
+/playwright/.cache/
