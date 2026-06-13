@@ -1,0 +1,35 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Plain `npm ci` — no Chromium download here. The mermaid build path only
+      # launches Playwright when a post actually contains a diagram (none do
+      # yet), so the Lighthouse install stays fast and clean. The browser is
+      # provisioned separately on Vercel (see vercel.json).
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # LHCI's startServerCommand (npm run start) and the target URLs live in
+      # lighthouserc.json. autorun collects, asserts the budgets, and uploads
+      # to temporary public storage (no secret required).
+      - name: Run Lighthouse CI
+        run: npx @lhci/cli@0.15.x autorun

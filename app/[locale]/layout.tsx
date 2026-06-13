@@ -9,6 +9,8 @@ import { Footer } from "@/components/nav/footer";
 import { siteConfig } from "@/lib/site-config";
 import { personJsonLd, websiteJsonLd } from "@/lib/jsonld";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -112,6 +114,11 @@ export default async function LocaleLayout({
           <main className="flex-1 w-full">{children}</main>
           <Footer locale={typedLocale} dict={dict} />
         </ThemeProvider>
+        {/* Cookieless RUM — no-ops outside Vercel, so local builds/dev are
+            unaffected. The /next entrypoints auto-track App Router navigations
+            via next/navigation, so no manual route wiring is needed. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

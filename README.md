@@ -64,6 +64,79 @@ So you never have to hand-edit the path — paste and keep writing.
 Visit `/<locale>/drafts` (e.g. `http://localhost:3000/ko/drafts`) to see all
 posts with `draft: true`. This route returns 404 in production builds.
 
+## Operations
+
+### Analytics & Speed Insights
+
+`app/[locale]/layout.tsx` mounts `<Analytics />` (`@vercel/analytics/next`) and
+`<SpeedInsights />` (`@vercel/speed-insights/next`) inside `<body>`. Both are
+cookieless and are **no-ops outside Vercel** — they detect the absence of the
+Vercel runtime and inject nothing locally or in CI, so `npm run dev` /
+`npm run build` are unaffected. The `/next` entrypoints are the App Router
+variants: they subscribe to `next/navigation` and report client-side route
+changes automatically, so no manual `route`/`pathname` wiring is needed.
+
+### Performance budgets (Lighthouse CI)
+
+`.github/workflows/lighthouse.yml` builds the app, starts it
+(`npm run start`), and runs `@lhci/cli autorun` against the home page (`/ko`)
+and a representative post (`/ko/blog/hello-world`). Budgets live in
+`lighthouserc.json`:
+
+- **`error` (deterministic):** `cumulative-layout-shift` ≤ 0.1,
+  `unused-javascript` ≤ 200 KB, `resource-summary:script:size` ≤ 800 KB
+  (the article page's eager first-load is ~676 KB raw — this is a sane ceiling
+  with headroom, not a trap).
+- **`warn` (timing, flaky on cold CI runners):** `largest-contentful-paint`,
+  `total-blocking-time`, `total-byte-weight`.
+
+Results upload to LHCI's temporary public storage — **no secret required**.
+
+### Mermaid on Vercel (Chromium provisioning)
+
+Build-time Mermaid rendering (`lib/rehype-mermaid-config.ts`) needs a headless
+Chromium to rasterize diagrams to inline SVG. It only launches a browser when a
+post actually contains a ` ```mermaid ` block **and** the diagram isn't already
+in `.mermaid-cache/` — currently no post has a diagram, so no browser launches.
+
+Vercel build images don't ship Chromium, so `vercel.json` overrides the build
+command:
+
+```json
+"buildCommand": "npx playwright install chromium && next build"
+```
+
+This affects **only the Vercel build**. Local `npm run build` and the Lighthouse
+CI `npm ci` deliberately skip the browser download to stay fast — the binary is
+only needed once a post ships a diagram. `next.config.ts` keeps
+`mermaid-isomorphic`/`playwright` in `serverExternalPackages` so they load via
+native `require` instead of being bundled.
+
+**Shallow-clone note (already handled in code):** Vercel clones at depth 1, so
+`git log` finds no history and per-post git dates resolve to `null`
+(`lib/git-dates.ts`); callers fall back to the frontmatter `date`. No build
+config is needed for this — it's intentional.
+
+### Rendering strategy: full SSG (when to revisit)
+
+Every route is statically generated at build time (full SSG) — no per-request
+rendering, no `revalidate`. This is correct while the blog is small: builds are
+fast and every page is a cacheable static asset.
+
+Revisit ISR **only when one of these thresholds is crossed:**
+
+- **Post count** climbs into the low hundreds and full-rebuild time becomes
+  annoying (rough rule of thumb: build > ~2 min, or you're rebuilding the whole
+  site for a one-post typo fix).
+- **Build minutes** on Vercel start mattering for cost/latency.
+- A future feature needs **fresher-than-deploy** data (e.g. view counts, pulled
+  comments) baked into the page.
+
+Migration path (do **not** implement preemptively): add a per-post
+`export const revalidate = <seconds>` to the post route and let stale-while-
+revalidate regenerate pages on demand instead of all-at-once at build. This is a
+small, localized change — defer it until a threshold above actually bites.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
