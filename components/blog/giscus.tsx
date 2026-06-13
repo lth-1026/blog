@@ -6,7 +6,12 @@ import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import { siteConfig } from "@/lib/site-config";
 
-export function Comments({ locale }: { locale: Locale }) {
+/**
+ * The actual @giscus/react widget. This is the heavy half — it's code-split out
+ * of the eager bundle and only imported (via `next/dynamic`, `ssr: false`) once
+ * the comments section scrolls into view. See `comments-lazy.tsx`.
+ */
+export function GiscusPanel({ locale }: { locale: Locale }) {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);

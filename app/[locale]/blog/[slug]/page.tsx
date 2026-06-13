@@ -6,7 +6,7 @@ import { locales, defaultLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { PostBody } from "@/components/blog/post-body";
-import { Comments } from "@/components/blog/giscus";
+import { Comments } from "@/components/blog/comments-lazy";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 
