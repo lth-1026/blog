@@ -1,0 +1,29 @@
+{
+  // --- Frictionless image paste/drag for MDX posts ---
+  // When you paste or drag an image into a post under content/posts/, VS Code
+  // saves the file into public/images/<post-file-basename>/ and inserts a
+  // markdown image link. The link VS Code writes is document-relative
+  // (e.g. ../../public/images/<post>/shot.png); the remark plugin
+  // lib/remark-public-images.ts rewrites it to a root-absolute /images/...
+  // URL at build time so it flows through the next/image pipeline (CLS-safe).
+  //
+  // ${documentWorkspaceFolder} anchors the destination at the repo root so the
+  // file always lands under /public regardless of how deep the post lives.
+  // ${documentBaseName} is the post filename without extension (e.g.
+  // "nextjs-16-mdx-blog.ko"), giving each post its own image folder.
+  "markdown.copyFiles.destination": {
+    "/content/posts/**/*": "${documentWorkspaceFolder}/public/images/${documentBaseName}/"
+  },
+  "markdown.copyFiles.overwriteBehavior": "nameIncrementally",
+
+  // Enable saving pasted/dropped media as workspace files (vs. inline data URIs).
+  "markdown.editor.filePaste.enabled": true,
+  "markdown.editor.drop.enabled": true,
+  "markdown.editor.filePaste.copyIntoWorkspace": "mediaFiles",
+  "markdown.editor.drop.copyIntoWorkspace": "mediaFiles",
+
+  // Apply the same markdown editing affordances to .mdx files.
+  "files.associations": {
+    "*.mdx": "markdown"
+  }
+}

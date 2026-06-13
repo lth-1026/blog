@@ -20,6 +20,50 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Authoring
+
+### New post
+
+```bash
+npm run new -- "글 제목" [--locale ko|en] [--slug my-slug]
+```
+
+> Note the `--` before the arguments: npm needs it to forward flags to the
+> script.
+
+Creates `content/posts/<slug>.<locale>.mdx` with frontmatter prefilled
+(`title`, empty `description`, today's `date`, empty `tags`, `draft: true`).
+
+- `--locale` defaults to `ko`.
+- The slug is derived as an ascii kebab-case from the title. A title with no
+  ascii characters (e.g. a Korean-only title) produces an empty slug — the
+  command fails and asks you to pass `--slug` explicitly, so you don't end up
+  with a broken URL.
+- It refuses to overwrite an existing file.
+
+### Pasting / dragging images
+
+Pasting a screenshot (or dragging an image file) into an MDX post in VS Code
+just works:
+
+1. Place the cursor in a post under `content/posts/` and paste (or drag) the
+   image.
+2. VS Code saves the file under `public/images/<post-file-basename>/` (see
+   `.vscode/settings.json`) and inserts a markdown image link.
+3. The link VS Code writes is document-relative
+   (`../../public/images/<post>/shot.png`). At build time the remark plugin
+   `lib/remark-public-images.ts` rewrites any image URL pointing into
+   `/public` to a root-absolute `/images/...` URL, which then flows through the
+   `next/image` pipeline (`rehypeImageSize` injects intrinsic width/height for
+   zero layout shift).
+
+So you never have to hand-edit the path — paste and keep writing.
+
+### Draft backlog (dev only)
+
+Visit `/<locale>/drafts` (e.g. `http://localhost:3000/ko/drafts`) to see all
+posts with `draft: true`. This route returns 404 in production builds.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
