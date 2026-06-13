@@ -7,6 +7,7 @@ import rehypePrettyCode, {
 } from "rehype-pretty-code";
 import { rehypeImageSize } from "./rehype-image-size";
 import { remarkPublicImages } from "./remark-public-images";
+import rehypeMermaidBuild from "./rehype-mermaid-config";
 
 const prettyCodeOptions: Partial<RehypePrettyCodeOptions> = {
   theme: {
@@ -24,6 +25,9 @@ export const mdxOptions: MDXRemoteProps["options"] = {
     // normalized "/images/…" src and can inject intrinsic width/height.
     remarkPlugins: [remarkGfm, remarkPublicImages],
     rehypePlugins: [
+      // Mermaid → inline SVG at build time. MUST run before rehypePrettyCode
+      // so Shiki never highlights mermaid blocks (this strips them first).
+      rehypeMermaidBuild,
       rehypeImageSize,
       rehypeSlug,
       [

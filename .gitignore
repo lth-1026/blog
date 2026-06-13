@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# mermaid build-time render cache (hash → light/dark SVG pair)
+/.mermaid-cache/

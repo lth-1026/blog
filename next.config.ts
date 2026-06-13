@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Build-time Mermaid rendering (lib/rehype-mermaid-config.ts) drives a
+  // headless Chromium via mermaid-isomorphic → playwright. These rely on
+  // native Node resolution (require.resolve of browser binaries) that breaks
+  // when bundled into the server graph, so opt them out of bundling and let
+  // them load via native require during `next build`.
+  serverExternalPackages: ["mermaid-isomorphic", "playwright", "playwright-core"],
   images: {
     // Modern formats served automatically; AVIF first, WebP fallback.
     formats: ["image/avif", "image/webp"],

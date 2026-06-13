@@ -167,6 +167,30 @@ html.dark .shiki span {
   text-decoration: var(--shiki-dark-text-decoration) !important;
 }
 
+/* Mermaid — build-time inline SVG, dual light/dark variants.
+   The rehype plugin (lib/rehype-mermaid-config.ts) emits two inline <svg>s per
+   diagram: data-mermaid-theme="light" and "dark". We show exactly one based on
+   html.dark — zero client JS, both variants live in the crawlable HTML.
+   Both are rendered on a transparent background so they sit on --background. */
+.mermaid {
+  display: flex;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+.mermaid svg[data-mermaid-theme="dark"] {
+  display: none;
+}
+html.dark .mermaid svg[data-mermaid-theme="light"] {
+  display: none;
+}
+html.dark .mermaid svg[data-mermaid-theme="dark"] {
+  display: block;
+}
+
 /* Prose typography for MDX */
 .prose {
   color: var(--foreground);
