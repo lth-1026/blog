@@ -5,6 +5,8 @@ import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypePrettyCode, {
   type Options as RehypePrettyCodeOptions,
 } from "rehype-pretty-code";
+import { rehypeImageSize } from "./rehype-image-size";
+import { remarkPublicImages } from "./remark-public-images";
 
 const prettyCodeOptions: Partial<RehypePrettyCodeOptions> = {
   theme: {
@@ -18,8 +20,11 @@ const prettyCodeOptions: Partial<RehypePrettyCodeOptions> = {
 export const mdxOptions: MDXRemoteProps["options"] = {
   parseFrontmatter: false,
   mdxOptions: {
-    remarkPlugins: [remarkGfm],
+    // remarkPublicImages runs before rehype so rehypeImageSize sees the
+    // normalized "/images/…" src and can inject intrinsic width/height.
+    remarkPlugins: [remarkGfm, remarkPublicImages],
     rehypePlugins: [
+      rehypeImageSize,
       rehypeSlug,
       [
         rehypeAutolinkHeadings,

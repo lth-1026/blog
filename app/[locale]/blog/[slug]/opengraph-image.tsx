@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import type { Locale } from "@/lib/i18n/config";
 import { getPost } from "@/lib/posts";
@@ -6,6 +8,15 @@ import { formatDate } from "@/lib/utils";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const alt = siteConfig.name.ko;
+
+// Pretendard covers Hangul; without it Satori renders Korean as tofu (□).
+// Read once per module load (cached across renders on the same worker).
+const fontDir = join(process.cwd(), "assets", "fonts");
+const [pretendardRegular, pretendardSemiBold] = await Promise.all([
+  readFile(join(fontDir, "Pretendard-Regular.otf")),
+  readFile(join(fontDir, "Pretendard-SemiBold.otf")),
+]);
 
 export default async function OG({
   params,
@@ -26,7 +37,7 @@ export default async function OG({
           background: "#0a0a0a",
           color: "#fafafa",
           padding: "72px",
-          fontFamily: "sans-serif",
+          fontFamily: "Pretendard",
         }}
       >
         <div
@@ -91,6 +102,12 @@ export default async function OG({
         </div>
       </div>
     ),
-    size,
+    {
+      ...size,
+      fonts: [
+        { name: "Pretendard", data: pretendardRegular, weight: 400, style: "normal" },
+        { name: "Pretendard", data: pretendardSemiBold, weight: 600, style: "normal" },
+      ],
+    },
   );
 }

@@ -54,6 +54,10 @@
 :root {
   --radius: 0.625rem;
 
+  /* Pretendard — self-hosted dynamic subset (public/fonts/pretendard).
+     Only the glyph chunks actually rendered on a page are fetched. */
+  --font-pretendard: "Pretendard Variable";
+
   /* Light theme — clean, bendd.me-inspired */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);

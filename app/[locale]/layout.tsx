@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
 import "../globals.css";
-import { locales, type Locale } from "@/lib/i18n/config";
+import { locales, defaultLocale, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { Header } from "@/components/nav/header";
 import { Footer } from "@/components/nav/footer";
@@ -64,7 +64,10 @@ export async function generateMetadata({
     },
     alternates: {
       canonical: `/${typed}`,
-      languages: Object.fromEntries(locales.map((l) => [l, `/${l}`])),
+      languages: {
+        ...Object.fromEntries(locales.map((l) => [l, `/${l}`])),
+        "x-default": `/${defaultLocale}`,
+      },
     },
   };
 }
@@ -89,6 +92,11 @@ export default async function LocaleLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        {/* Pretendard dynamic subset — self-hosted; browser fetches only the
+            glyph chunks present on the page (~tens of KB), not the full font. */}
+        <link rel="stylesheet" href="/fonts/pretendard/pretendard.css" />
+      </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <script

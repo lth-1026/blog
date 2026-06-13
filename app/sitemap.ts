@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { locales } from "@/lib/i18n/config";
+import { locales, defaultLocale } from "@/lib/i18n/config";
 import { getAllPosts, getAllTags, getAllSeries } from "@/lib/posts";
 import { siteConfig } from "@/lib/site-config";
 
@@ -16,9 +16,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${base}/${l}`]),
-        ),
+        languages: {
+          ...Object.fromEntries(locales.map((l) => [l, `${base}/${l}`])),
+          "x-default": `${base}/${defaultLocale}`,
+        },
       },
     });
     entries.push({
@@ -27,17 +28,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "daily",
       priority: 0.9,
       alternates: {
-        languages: Object.fromEntries(
-          locales.map((l) => [l, `${base}/${l}/blog`]),
-        ),
+        languages: {
+          ...Object.fromEntries(locales.map((l) => [l, `${base}/${l}/blog`])),
+          "x-default": `${base}/${defaultLocale}/blog`,
+        },
       },
     });
 
     const posts = await getAllPosts(locale);
     for (const post of posts) {
-      const languages = Object.fromEntries(
+      const languages: Record<string, string> = Object.fromEntries(
         post.availableLocales.map((l) => [l, `${base}/${l}/blog/${post.slug}`]),
       );
+      languages["x-default"] = post.availableLocales.includes(defaultLocale)
+        ? `${base}/${defaultLocale}/blog/${post.slug}`
+        : `${base}/${locale}/blog/${post.slug}`;
       entries.push({
         url: `${base}/${locale}/blog/${post.slug}`,
         lastModified: new Date(post.updated ?? post.date),

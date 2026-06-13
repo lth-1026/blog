@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
-import { locales } from "@/lib/i18n/config";
+import { locales, defaultLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { PostBody } from "@/components/blog/post-body";
@@ -31,6 +31,11 @@ export async function generateMetadata({
       languages[l] = `/${l}/blog/${slug}`;
     }
   }
+  // x-default: where to send a searcher whose language we don't target.
+  // Prefer the default-locale version; fall back to whatever this post is.
+  languages["x-default"] = post.availableLocales.includes(defaultLocale)
+    ? `/${defaultLocale}/blog/${slug}`
+    : `/${locale}/blog/${slug}`;
 
   return {
     title: post.title,
