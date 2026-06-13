@@ -256,3 +256,156 @@ html.dark .mermaid svg[data-mermaid-theme="dark"] {
 .prose table { width: 100%; border-collapse: collapse; margin: 1.25rem 0; font-size: 0.9375rem; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
 .prose th { background: var(--muted); font-weight: 600; }
+
+/* ── Code blocks ─────────────────────────────────────────────────────────────
+   rehype-pretty-code (Shiki) emits, per fenced block:
+     <figure data-rehype-pretty-code-figure>
+       <figcaption data-rehype-pretty-code-title data-language>…</figcaption>  (only with title="")
+       <pre data-language="ts"><code …><span data-line [data-highlighted-line]>…</span>…</code></pre>
+     </figure>
+   Language label, line highlighting and the title bar are 100% CSS (zero JS).
+   Only the copy button uses JS (components/blog/code-copy-buttons.tsx). */
+
+/* The figure is a bare wrapper; let pre keep its own box, drop default margins. */
+.prose figure[data-rehype-pretty-code-figure] {
+  margin: 1.25rem 0;
+}
+.prose figure[data-rehype-pretty-code-figure] pre {
+  margin: 0;
+}
+
+/* Positioning context for the language label + copy button. */
+.prose pre {
+  position: relative;
+}
+
+/* Language label — pure CSS, reads data-language via attr().
+   Sits top-right; fades out while hovering so the copy button can take over. */
+.prose pre[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.25rem;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+/* Hide the label for non-languages. */
+.prose pre[data-language="plaintext"]::before,
+.prose pre[data-language="text"]::before,
+.prose pre[data-language=""]::before,
+.prose pre:not([data-language])::before {
+  content: none;
+}
+/* Make room for the title bar: when inside a titled figure, drop the label. */
+.prose figure[data-rehype-pretty-code-figure]:has(> figcaption[data-rehype-pretty-code-title]) pre[data-language]::before {
+  content: none;
+}
+
+/* Copy button — injected by the JS island. Hidden until hover/focus. */
+.prose pre [data-copy-button] {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--card);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.prose pre:hover [data-copy-button],
+.prose pre [data-copy-button]:focus-visible {
+  opacity: 1;
+}
+/* When the copy button shows, dim the language label so they don't collide. */
+.prose pre:hover[data-language]::before {
+  opacity: 0;
+}
+.prose pre [data-copy-button]:hover {
+  color: var(--foreground);
+  border-color: var(--muted-foreground);
+}
+.prose pre [data-copy-button]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Copy / check icons drawn with CSS masks (no SVG markup, no extra requests). */
+.prose pre [data-copy-button] [data-copy-icon],
+.prose pre [data-copy-button] [data-check-icon] {
+  width: 0.875rem;
+  height: 0.875rem;
+  background: currentColor;
+}
+.prose pre [data-copy-button] [data-copy-icon] {
+  -webkit-mask: var(--icon-copy) center / contain no-repeat;
+  mask: var(--icon-copy) center / contain no-repeat;
+}
+.prose pre [data-copy-button] [data-check-icon] {
+  display: none;
+  -webkit-mask: var(--icon-check) center / contain no-repeat;
+  mask: var(--icon-check) center / contain no-repeat;
+}
+.prose pre [data-copy-button][data-copied] {
+  color: oklch(0.6 0.17 150);
+  border-color: oklch(0.6 0.17 150);
+}
+.prose pre [data-copy-button][data-copied] [data-copy-icon] { display: none; }
+.prose pre [data-copy-button][data-copied] [data-check-icon] { display: block; }
+
+/* Inline SVG data URIs for the two icons (lucide copy + check). */
+:root {
+  --icon-copy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='8' y='8' rx='2' ry='2'/%3E%3Cpath d='M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'/%3E%3C/svg%3E");
+  --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+}
+
+/* Line highlighting — authors write ```ts {1,3-5}.
+   `code` is display:grid so each [data-line] span is a full-width grid row;
+   the negative inset bleeds the highlight to the pre's padding edges. */
+.prose pre code { display: grid; }
+.prose pre code [data-line] {
+  padding-inline: 1rem;
+  margin-inline: -1rem;
+  border-left: 2px solid transparent;
+}
+.prose pre code [data-highlighted-line] {
+  background: color-mix(in oklch, var(--foreground) 7%, transparent);
+  border-left-color: color-mix(in oklch, var(--foreground) 35%, transparent);
+}
+html.dark .prose pre code [data-highlighted-line] {
+  background: color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+/* Title bar — ```ts title="file.ts" renders a figcaption above the block. */
+.prose figure[data-rehype-pretty-code-figure] figcaption[data-rehype-pretty-code-title] {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+  padding: 0.5rem 0.875rem;
+}
+/* Merge the title bar with the pre below it. */
+.prose figure[data-rehype-pretty-code-figure]:has(> figcaption[data-rehype-pretty-code-title]) pre {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
