@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
+import { redirects } from "./lib/redirects";
 
 const nextConfig: NextConfig = {
+  // Permanent slug-rename redirects, sourced from lib/redirects.ts.
+  async redirects() {
+    return redirects;
+  },
   // Build-time Mermaid rendering (lib/rehype-mermaid-config.ts) drives a
   // headless Chromium via mermaid-isomorphic → playwright. These rely on
   // native Node resolution (require.resolve of browser binaries) that breaks

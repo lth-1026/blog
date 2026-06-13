@@ -3,6 +3,7 @@ import path from "node:path";
 import matter from "gray-matter";
 import readingTime from "reading-time";
 import { z } from "zod";
+import { getGitLastModified } from "./git-dates";
 import type { Locale } from "./i18n/config";
 import { locales } from "./i18n/config";
 
@@ -16,7 +17,7 @@ const isoDate = z
 // or missing field breaks the build loudly instead of silently dropping a post.
 const frontmatterSchema = z.object({
   title: z.string().min(1, "title is required"),
-  description: z.string().min(1).optional(),
+  description: z.string().min(1, "description is required (non-empty)"),
   date: isoDate,
   updated: isoDate.optional(),
   tags: z.array(z.string().min(1)).optional(),
@@ -32,6 +33,11 @@ export interface PostMeta extends PostFrontmatter {
   locale: Locale;
   readingTimeMinutes: number;
   availableLocales: Locale[];
+  // Effective last-modified ISO date, resolved at load time with priority:
+  // frontmatter `updated` (explicit author override) → git commit date →
+  // `date`. Consumers (JSON-LD dateModified, OG modifiedTime, sitemap
+  // lastModified) should read this instead of `updated ?? date`.
+  lastModified: string;
 }
 
 export interface Post extends PostMeta {
@@ -64,13 +70,14 @@ async function readPostFile(filename: string): Promise<Post | null> {
   }
   const fm = parsed.data;
 
-  if (!fm.description) {
-    console.warn(
-      `[posts] ${filename}: missing "description" — search snippets and SEO meta will be weak.`,
-    );
-  }
-
   const stats = readingTime(content);
+
+  // Effective last-modified date. Priority: explicit author `updated` override
+  // → git last-commit date → publish `date`. On a shallow CI clone (Vercel
+  // default) git history may be absent, so getGitLastModified returns null and
+  // we cleanly fall back to `date` — never crashing the build.
+  const lastModified = fm.updated ?? getGitLastModified(filePath) ?? fm.date;
+
   return {
     ...fm,
     slug,
@@ -78,6 +85,7 @@ async function readPostFile(filename: string): Promise<Post | null> {
     content,
     readingTimeMinutes: Math.max(1, Math.round(stats.minutes)),
     availableLocales: [],
+    lastModified,
   };
 }
 

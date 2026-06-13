@@ -23,7 +23,9 @@
     "noResults": "No results.",
     "thisPostInOtherLanguage": "This post is also available in another language.",
     "onlyAvailableInKorean": "This post is only available in Korean.",
-    "onlyAvailableInEnglish": "This post is only available in English."
+    "onlyAvailableInEnglish": "This post is only available in English.",
+    "outdatedTitle": "This post is old",
+    "outdatedNotice": "This post was published on {date}. Some of its content may no longer be accurate, so please read with that in mind."
   },
   "search": {
     "placeholder": "Type to search...",

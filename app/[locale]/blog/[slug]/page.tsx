@@ -6,6 +6,7 @@ import { locales, defaultLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/getDictionary";
 import { getAllSlugs, getPost } from "@/lib/posts";
 import { PostBody } from "@/components/blog/post-body";
+import { OutdatedBanner } from "@/components/blog/outdated-banner";
 import { Comments } from "@/components/blog/comments-lazy";
 import { formatDate } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
@@ -49,7 +50,7 @@ export async function generateMetadata({
       siteName: siteConfig.name[locale],
       locale,
       publishedTime: post.date,
-      modifiedTime: post.updated ?? post.date,
+      modifiedTime: post.lastModified,
       tags: post.tags,
       authors: [siteConfig.author.name[locale]],
     },
@@ -78,7 +79,7 @@ export default async function PostPage({
     headline: post.title,
     description: post.description,
     datePublished: post.date,
-    dateModified: post.updated ?? post.date,
+    dateModified: post.lastModified,
     author: {
       "@type": "Person",
       name: siteConfig.author.name[locale],
@@ -151,6 +152,13 @@ export default async function PostPage({
           </p>
         )}
       </header>
+
+      <OutdatedBanner
+        date={post.date}
+        lastModified={post.lastModified}
+        locale={locale}
+        dict={dict}
+      />
 
       <PostBody content={post.content} />
 
