@@ -12,7 +12,9 @@ export async function generateStaticParams() {
   for (const locale of locales) {
     const tags = await getAllTags(locale);
     for (const tag of tags) {
-      params.push({ locale, tag: encodeURIComponent(tag) });
+      // Raw value — Next encodes for the path. Pre-encoding double-encodes and
+      // 404s on click for any non-ASCII/spaced tag (ASCII tags happened to work).
+      params.push({ locale, tag: tag });
     }
   }
   return params;

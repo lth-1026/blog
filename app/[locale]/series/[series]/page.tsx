@@ -12,7 +12,10 @@ export async function generateStaticParams() {
   for (const locale of locales) {
     const series = await getAllSeries(locale);
     for (const s of series) {
-      params.push({ locale, series: encodeURIComponent(s) });
+      // Return the RAW value — Next encodes it for the path. Pre-encoding here
+      // causes double-encoding, so series names with spaces/non-ASCII (e.g.
+      // "블로그 만들기", "Building this blog") 404 on click.
+      params.push({ locale, series: s });
     }
   }
   return params;
