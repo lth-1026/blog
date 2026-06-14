@@ -14,7 +14,7 @@ export const siteConfig = {
       en: "Taeho Lee",
     },
     email: "th20001026@gmail.com",
-    github: "https://github.com/leetaeho",
+    github: "https://github.com/lth-1026",
   },
   ogImage: "/og-default.png",
   giscus: {
