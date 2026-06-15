@@ -135,6 +135,14 @@
     @apply border-border outline-ring/50;
   }
 
+  /* Tailwind v4 Preflight gives buttons the default (arrow) cursor. Restore the
+     pointer on everything clickable for usability. Disabled buttons already get
+     pointer-events-none, so they're unaffected. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
